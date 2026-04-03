@@ -13,3 +13,8 @@ def save_image(source_path):
     
 
 def get_image(image_id):
+    for filename in os.listdir(IMAGES_DIR):
+        if filename.startswith(image_id):
+            return os.path.join (IMAGES_DIR, filename)
+    return None
+
