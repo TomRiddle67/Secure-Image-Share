@@ -112,15 +112,22 @@ Commands:
 
 ---
 
-## 🌱 Future Improvements
+## 🚀 Next Phase: Secure Image API
 
-- [ ] Password protect individual images
-- [ ] Set expiry time on images
-- [ ] Support for multiple file types validation
-- [ ] Delete image by ID
-- [ ] Encrypt stored images
+This project is evolving from a CLI tool into a backend API using FastAPI.
 
----
+### Goals
+- Upload images via HTTP requests
+- Generate unique IDs for access
+- Retrieve images using endpoints
+- Reuse existing storage and ID logic
+
+### Planned Enhancements
+- Password protection per image
+- Expiring image links
+- File type validation
+- Delete image by ID
+- Encryption for stored images
 
  Author
  TomRiddle 
