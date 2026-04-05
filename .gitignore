@@ -7,4 +7,4 @@ __pycache__/
 *.pyc
 
 # Images folder
-images/
+images/.DS_Store
