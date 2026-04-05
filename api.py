@@ -1,7 +1,8 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, HTTPException
 import shutil
 import os
-from storage import save_image
+from storage import save_image, get_image
+from fastapi.responses import FileResponse
 
 
 app = FastAPI()
@@ -19,4 +20,13 @@ def upload_image(file: UploadFile = File(...)):
     os.remove(temp_path)
 
     return{"image_id": image_id}
+
+@app.get("/get/{image_id}")
+def retrieve_image(image_id: str):
+    path = get_image(image_id)
+    if path:
+        return FileResponse(path)
+    else:
+        raise HTTPException(status_code=404, detail="Image not found")
+
 
