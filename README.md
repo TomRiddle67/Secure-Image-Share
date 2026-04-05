@@ -1,15 +1,18 @@
-# 🛠 Secure Image Share CLI
+# 🔐 Secure Image Share
 
-A lightweight command-line app that lets you upload images and retrieve them using a unique secret ID — built with Python.
+A secure image sharing app built with Python — available as both a **CLI tool** and a **REST API**.
+
+Upload images, get a unique secret ID, and retrieve them anytime. Built from scratch with real engineering practices.
 
 ---
 
 ## 🚀 What It Does
 
-- 📤 **Upload** any image from your computer
+- 📤 **Upload** any image via CLI or HTTP request
 - 🔑 **Get a unique ID** automatically generated for your image
 - 📥 **Retrieve** your image anytime using that ID
 - 🛡️ **Stores images locally** with UUID-based naming so no two files ever clash
+- ⚡ **REST API** powered by FastAPI with auto-generated documentation
 
 ---
 
@@ -18,8 +21,9 @@ A lightweight command-line app that lets you upload images and retrieve them usi
 ```
 secure_image_share/
 │
-├── main.py            # CLI entry point — where the app starts
-├── storage.py         # Handles saving and retrieving images
+├── main.py            # CLI entry point
+├── api.py             # FastAPI REST API
+├── storage.py         # Handles saving and retrieving images (shared by CLI & API)
 ├── id_generator.py    # Generates unique UUIDs for each image
 ├── config.py          # App settings (storage folder path)
 │
@@ -32,7 +36,6 @@ secure_image_share/
 
 **Requirements:**
 - Python 3.x
-- No external libraries needed — uses Python's built-in modules only!
 
 **Clone the repo:**
 ```bash
@@ -40,9 +43,14 @@ git clone https://github.com/TomRiddle67/Secure-Image-Share.git
 cd Secure-Image-Share
 ```
 
+**Install API dependencies:**
+```bash
+pip3 install fastapi uvicorn python-multipart
+```
+
 ---
 
-## 💻 Usage
+## 💻 CLI Usage
 
 ### Upload an image
 ```bash
@@ -59,8 +67,6 @@ python3 main.py upload photo.jpg
 💡 Keep this ID safe — it's the only way to retrieve your image!
 ```
 
----
-
 ### Retrieve an image
 ```bash
 python3 main.py get <your_secret_id>
@@ -74,15 +80,13 @@ python3 main.py get 018a79f1-0268-410d-bac3-0f7adb3789c9
 🎉 Found it! Your image is at: images/018a79f1-0268-410d-bac3-0f7adb3789c9.jpg
 ```
 
----
-
 ### No arguments
 ```bash
 python3 main.py
 ```
 **Output:**
 ```
-🛠 Welcome to Secure Image Share!
+🔐 Welcome to Secure Image Share!
 ─────────────────────────────────
 Commands:
   📤 python main.py upload <image_path>
@@ -91,13 +95,89 @@ Commands:
 
 ---
 
+## 🌐 API Usage
+
+### Start the server
+```bash
+uvicorn api:app --reload
+```
+Server runs at: `http://127.0.0.1:8000`
+
+Interactive API docs at: `http://127.0.0.1:8000/docs` 🪄
+
+---
+
+### Endpoints
+
+#### `GET /`
+Welcome message confirming API is running.
+
+**Response:**
+```json
+{
+  "Message": "🛠 Welcome to Secure Image Share API!"
+}
+```
+
+---
+
+#### `POST /upload`
+Upload an image file.
+
+**Request:**
+```bash
+curl -X 'POST' \
+  'http://127.0.0.1:8000/upload' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'file=@photo.jpg;type=image/jpeg'
+```
+
+**Response:**
+```json
+{
+  "image_id": "001a45ec-7ff0-473c-abeb-ca616729bb7c"
+}
+```
+
+---
+
+#### `GET /get/{image_id}`
+Retrieve an image by its unique ID.
+
+**Request:**
+```bash
+curl -X 'GET' \
+  'http://127.0.0.1:8000/get/001a45ec-7ff0-473c-abeb-ca616729bb7c'
+```
+
+**Response:**
+- ✅ Returns the actual image file
+- ❌ Returns `404` if ID not found:
+```json
+{
+  "detail": "Image not found"
+}
+```
+
+---
+
 ## 🧠 How It Works
 
-1. User provides an image path
-2. App generates a **UUID** (Universally Unique Identifier) — a random ID that will never repeat
-3. App copies the image into the `images/` folder renamed to that UUID
+```
+CLI                          API
+─────────────────────────────────────────────
+user types command     →     HTTP request
+app prints output      →     JSON response  
+main.py handles input  →     endpoints handle requests
+runs locally           →     runs as a server
+```
+
+1. User provides an image (path via CLI or file via HTTP)
+2. App generates a **UUID** — a random ID that will never repeat
+3. App copies the image into `images/` folder renamed to that UUID
 4. User receives the UUID as their **secret retrieval key**
-5. Later, user provides the UUID and app locates and returns the image path
+5. Later, user provides the UUID and app returns the image
 
 ---
 
@@ -109,25 +189,26 @@ Commands:
 | `shutil` | Copies image files |
 | `os` | Handles file paths and folders |
 | `sys` | Reads CLI arguments |
+| `fastapi` | REST API framework |
+| `uvicorn` | ASGI server to run FastAPI |
+| `python-multipart` | Handles file uploads via HTTP |
 
 ---
 
-## 🚀 Next Phase: Secure Image API
+## 🌱 Roadmap
 
-This project is evolving from a CLI tool into a backend API using FastAPI.
+- [x] CLI image upload and retrieval
+- [x] REST API with FastAPI
+- [ ] API Key authentication
+- [ ] Expiring image links
+- [ ] Image encryption
+- [ ] Rate limiting
+- [ ] Deploy to cloud (Railway / Render)
 
-### Goals
-- Upload images via HTTP requests
-- Generate unique IDs for access
-- Retrieve images using endpoints
-- Reuse existing storage and ID logic
+---
 
-### Planned Enhancements
-- Password protection per image
-- Expiring image links
-- File type validation
-- Delete image by ID
-- Encryption for stored images
+Author
+TomRiddle67
 
- Author
- TomRiddle 
+
+MIT License — free to use and modify!
