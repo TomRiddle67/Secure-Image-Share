@@ -23,9 +23,11 @@ def home ():
     return{"Message": "🛠 Welcome to Secure Image Share API!"}
 
 @app.post ("/upload")
+
 def upload_image(
     file: UploadFile = File(...), 
-    api_key: str = Security(verify_key)):
+    api_key: str = Security(verify_key)
+    ):
     temp_path = f"temp_{file.filename}"
     with open(temp_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
@@ -35,7 +37,10 @@ def upload_image(
     return{"image_id": image_id}
 
 @app.get("/get/{image_id}")
-def retrieve_image(image_id: str):
+def retrieve_image(
+    image_id: str,
+    api_key: str = Security(verify_key)
+    ):
     path = get_image(image_id)
     if path:
         return FileResponse(path)
