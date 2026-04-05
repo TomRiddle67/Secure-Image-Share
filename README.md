@@ -1,8 +1,8 @@
 # 🔐 Secure Image Share
 
-A secure image sharing app built with Python — available as both a **CLI tool** and a **REST API**.
+A secure image sharing app built with Python — available as both a **CLI tool** and a **REST API** with API key authentication.
 
-Upload images, get a unique secret ID, and retrieve them anytime. Built from scratch with real engineering practices.
+Upload images, get a unique secret ID, and retrieve them securely. Built from scratch with real engineering practices.
 
 ---
 
@@ -13,6 +13,7 @@ Upload images, get a unique secret ID, and retrieve them anytime. Built from scr
 - 📥 **Retrieve** your image anytime using that ID
 - 🛡️ **Stores images locally** with UUID-based naming so no two files ever clash
 - ⚡ **REST API** powered by FastAPI with auto-generated documentation
+- 🔐 **API Key Authentication** — only authorised users can upload or retrieve images
 
 ---
 
@@ -25,7 +26,7 @@ secure_image_share/
 ├── api.py             # FastAPI REST API
 ├── storage.py         # Handles saving and retrieving images (shared by CLI & API)
 ├── id_generator.py    # Generates unique UUIDs for each image
-├── config.py          # App settings (storage folder path)
+├── config.py          # App settings, storage path, and API keys
 │
 └── images/            # Where uploaded images are stored
 ```
@@ -46,6 +47,14 @@ cd Secure-Image-Share
 **Install API dependencies:**
 ```bash
 pip3 install fastapi uvicorn python-multipart
+```
+
+**Configure your API keys in `config.py`:**
+```python
+API_KEYS = [
+    "your-secret-key-1",
+    "your-secret-key-2"
+]
 ```
 
 ---
@@ -71,26 +80,9 @@ python3 main.py upload photo.jpg
 ```bash
 python3 main.py get <your_secret_id>
 ```
-**Example:**
-```bash
-python3 main.py get 018a79f1-0268-410d-bac3-0f7adb3789c9
-```
 **Output:**
 ```
 🎉 Found it! Your image is at: images/018a79f1-0268-410d-bac3-0f7adb3789c9.jpg
-```
-
-### No arguments
-```bash
-python3 main.py
-```
-**Output:**
-```
-🔐 Welcome to Secure Image Share!
-─────────────────────────────────
-Commands:
-  📤 python main.py upload <image_path>
-  📥 python main.py get <image_id>
 ```
 
 ---
@@ -107,10 +99,32 @@ Interactive API docs at: `http://127.0.0.1:8000/docs` 🪄
 
 ---
 
-### Endpoints
+## 🔐 Authentication
 
-#### `GET /`
-Welcome message confirming API is running.
+All API endpoints require a valid API key sent in the request header:
+
+```
+X-API-Key: your-secret-key
+```
+
+| Scenario | Response |
+|----------|----------|
+| No key provided | `401 Unauthorized` |
+| Wrong key | `401 Unauthorized` |
+| Valid key | `200 Success` |
+
+### How to authenticate in Swagger UI:
+1. Go to `http://127.0.0.1:8000/docs`
+2. Click the 🔒 **Authorize** button
+3. Enter your API key
+4. All requests will include your key automatically!
+
+---
+
+## 📡 Endpoints
+
+### `GET /`
+Welcome message — no authentication required.
 
 **Response:**
 ```json
@@ -121,39 +135,48 @@ Welcome message confirming API is running.
 
 ---
 
-#### `POST /upload`
-Upload an image file.
+### `POST /upload` 🔒
+Upload an image file. **Requires API key.**
 
 **Request:**
 ```bash
 curl -X 'POST' \
   'http://127.0.0.1:8000/upload' \
-  -H 'accept: application/json' \
+  -H 'X-API-Key: your-secret-key' \
   -H 'Content-Type: multipart/form-data' \
   -F 'file=@photo.jpg;type=image/jpeg'
 ```
 
-**Response:**
+**Success Response:**
 ```json
 {
   "image_id": "001a45ec-7ff0-473c-abeb-ca616729bb7c"
 }
 ```
 
+**Error Response:**
+```json
+{
+  "detail": "Invalid or missing API key"
+}
+```
+
 ---
 
-#### `GET /get/{image_id}`
-Retrieve an image by its unique ID.
+### `GET /get/{image_id}` 🔒
+Retrieve an image by its unique ID. **Requires API key.**
 
 **Request:**
 ```bash
 curl -X 'GET' \
-  'http://127.0.0.1:8000/get/001a45ec-7ff0-473c-abeb-ca616729bb7c'
+  'http://127.0.0.1:8000/get/001a45ec-7ff0-473c-abeb-ca616729bb7c' \
+  -H 'X-API-Key: your-secret-key'
 ```
 
-**Response:**
+**Responses:**
 - ✅ Returns the actual image file
-- ❌ Returns `404` if ID not found:
+- ❌ `401` — Invalid or missing API key
+- ❌ `404` — Image not found:
 ```json
 {
   "detail": "Image not found"
@@ -168,16 +191,18 @@ curl -X 'GET' \
 CLI                          API
 ─────────────────────────────────────────────
 user types command     →     HTTP request
-app prints output      →     JSON response  
+app prints output      →     JSON response
 main.py handles input  →     endpoints handle requests
-runs locally           →     runs as a server
+runs locally           →     runs as a server for everyone
 ```
 
-1. User provides an image (path via CLI or file via HTTP)
-2. App generates a **UUID** — a random ID that will never repeat
-3. App copies the image into `images/` folder renamed to that UUID
-4. User receives the UUID as their **secret retrieval key**
-5. Later, user provides the UUID and app returns the image
+1. User sends request with valid **API key** in header
+2. Server verifies key — rejects if invalid
+3. User provides image (path via CLI or file via HTTP)
+4. App generates a **UUID** — a random ID that will never repeat
+5. App copies image into `images/` folder renamed to that UUID
+6. User receives UUID as their **secret retrieval key**
+7. Later, user provides UUID + API key and app returns the image
 
 ---
 
@@ -199,7 +224,7 @@ runs locally           →     runs as a server
 
 - [x] CLI image upload and retrieval
 - [x] REST API with FastAPI
-- [ ] API Key authentication
+- [x] API Key authentication
 - [ ] Expiring image links
 - [ ] Image encryption
 - [ ] Rate limiting
@@ -209,4 +234,3 @@ runs locally           →     runs as a server
 
 Author
 TomRiddle67
-
