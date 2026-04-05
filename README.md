@@ -210,5 +210,3 @@ runs locally           →     runs as a server
 Author
 TomRiddle67
 
-
-MIT License — free to use and modify!
