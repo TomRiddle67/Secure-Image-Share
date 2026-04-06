@@ -5,6 +5,7 @@ Tom Riddle.jpg
 # Python cache
 __pycache__/
 *.pyc
-
+.env
+*.env
 # Images folder
 images/.DS_Store
